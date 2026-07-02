@@ -37,7 +37,7 @@ if not GOOGLE_CREDENTIALS_B64 or not GOOGLE_TOKEN_B64:
 
 # IDs de carpetas Google Drive (desde env vars)
 # IMPORTANTE: Configura estos IDs UNA SOLA VEZ en Render
-ID_AÑO_2026 = os.getenv('GOOGLE_DRIVE_AÑO_2026', '1e3RDERmVTo6CMsyy_dXFpH8ry_0DVSl-')
+ID_AÑO_2026 = os.getenv('GOOGLE_DRIVE_YEAR_2026', '1e3RDERmVTo6CMsyy_dXFpH8ry_0DVSl-')
 
 TRIMESTRES = {
     1: os.getenv('GOOGLE_DRIVE_TRIMESTRE_1', 'ID_TRIMESTRE_1'),

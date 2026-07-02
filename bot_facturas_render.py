@@ -439,11 +439,6 @@ def iniciar_servidor_http():
 # ======================
 
 def main():
-    # Iniciar servidor HTTP en un thread separado
-    servidor_thread = threading.Thread(target=iniciar_servidor_http, daemon=True)
-    servidor_thread.start()
-    logger.info("Thread del servidor HTTP iniciado")
-    
     # Configurar aplicación Telegram
     application = Application.builder().token(TOKEN).build()
 
@@ -472,8 +467,14 @@ def main():
 
     application.add_handler(conv_handler)
 
+    # Iniciar servidor HTTP en thread separado
+    servidor_thread = threading.Thread(target=iniciar_servidor_http, daemon=True)
+    servidor_thread.start()
+    logger.info("Servidor HTTP iniciado en thread daemon")
+
+    # Bot en polling en el thread principal
     logger.info("Bot iniciando (polling mode)...")
-    application.run_polling()
+    application.run_polling(allowed_updates=None, drop_pending_updates=True)
 
 if __name__ == "__main__":
     main()

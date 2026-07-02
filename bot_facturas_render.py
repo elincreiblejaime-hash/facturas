@@ -439,7 +439,19 @@ def iniciar_servidor_http():
 # ======================
 
 def main():
-    # Configurar aplicación Telegram
+    import asyncio
+    
+    # Crear y asignar event loop EXPLÍCITAMENTE
+    asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    # Iniciar servidor HTTP en thread daemon PRIMERO
+    servidor_thread = threading.Thread(target=iniciar_servidor_http, daemon=True)
+    servidor_thread.start()
+    logger.info("Servidor HTTP iniciado en thread daemon")
+    
+    # LUEGO configurar el bot
     application = Application.builder().token(TOKEN).build()
 
     conv_handler = ConversationHandler(
@@ -466,13 +478,7 @@ def main():
     )
 
     application.add_handler(conv_handler)
-
-    # Iniciar servidor HTTP en thread separado
-    servidor_thread = threading.Thread(target=iniciar_servidor_http, daemon=True)
-    servidor_thread.start()
-    logger.info("Servidor HTTP iniciado en thread daemon")
-
-    # Bot en polling en el thread principal
+    
     logger.info("Bot iniciando (polling mode)...")
     application.run_polling(allowed_updates=None, drop_pending_updates=True)
 

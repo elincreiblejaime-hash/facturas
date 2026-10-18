@@ -58,6 +58,21 @@ class NumerosTest(unittest.TestCase):
 
 
 class PdfTest(unittest.TestCase):
+    def test_estilo_original(self):
+        with TemporaryDirectory(dir=Path.cwd()) as carpeta:
+            ruta = Path(carpeta) / 'estilo.pdf'
+            generar_factura(datos(), ruta)
+            with pdfplumber.open(ruta) as pdf:
+                pagina = pdf.pages[0]
+                # Fondo beige hasta el borde inferior de la tabla original.
+                fondos = [r for r in pagina.rects if r.get('non_stroking_color') == (0.960784, 0.960784, 0.862745)]
+                self.assertTrue(any(abs(r['x0']-30.6) < 1 and abs(r['x1']-581.4) < 1
+                                    and abs(r['y0']-124.4) < 1 for r in fondos))
+                pago = [c for c in pagina.chars if 24 < c['y0'] < 105]
+                self.assertTrue(pago)
+                self.assertTrue(all('Bold' in c['fontname'] for c in pago))
+                self.assertIn('Total con Iva: 227.169,03', pagina.extract_text())
+
     def test_ejemplo_y_paginacion(self):
         with TemporaryDirectory(dir=Path.cwd()) as carpeta:
             for caso in ['ejemplo', 'muchas', 'gigante', 'vacia', 'presupuesto']:

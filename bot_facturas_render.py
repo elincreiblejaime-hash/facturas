@@ -19,6 +19,7 @@ from email import encoders
 import base64
 
 from generar_factura import generar_factura
+from numeros import parse_numero, calcular_totales
 
 # Logging
 logging.basicConfig(level=logging.INFO)
@@ -293,18 +294,17 @@ async def descripcion_producto(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def cantidad_producto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        cantidad_texto = update.message.text.replace('.', ',')
-        cantidad = float(cantidad_texto)
+        cantidad = parse_numero(update.message.text)
         context.user_data['cantidad_producto'] = cantidad
         await update.message.reply_text("Por favor, proporciona el precio unitario del producto:")
         return PRECIO_UNITARIO
     except ValueError:
-        await update.message.reply_text("❌ La cantidad debe ser un número. Intenta de nuevo:")
+        await update.message.reply_text("❌ La cantidad debe ser un número no negativo (ej.: 1,5 o 1.5). Intenta de nuevo:")
         return CANTIDAD_PRODUCTO
 
 async def precio_unitario(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        precio_unitario = float(update.message.text)
+        precio_unitario = parse_numero(update.message.text)
         context.user_data['precio_unitario'] = precio_unitario
 
         if 'filas_factura' not in context.user_data:
@@ -318,7 +318,7 @@ async def precio_unitario(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("¿Deseas añadir otro producto? (s/n):")
         return OTRO_PRODUCTO
     except ValueError:
-        await update.message.reply_text("❌ El precio unitario debe ser un número. Intenta de nuevo:")
+        await update.message.reply_text("❌ El precio unitario debe ser un número no negativo (ej.: 12,50 o 12.50). Intenta de nuevo:")
         return PRECIO_UNITARIO
 
 async def otro_producto(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -341,11 +341,12 @@ async def descuento(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cantidad_descuento(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        descuento = float(update.message.text)
+        descuento = parse_numero(update.message.text)
+        calcular_totales(context.user_data['filas_factura'], descuento)
         context.user_data['descuento'] = descuento
         return await generar_previsualizacion(update, context)
     except ValueError:
-        await update.message.reply_text("❌ El descuento debe ser un número. Intenta de nuevo:")
+        await update.message.reply_text("❌ El descuento debe ser un número no negativo y no superar el subtotal. Intenta de nuevo:")
         return CANTIDAD_DESCUENTO
 
 async def confirmar_generar(update: Update, context: ContextTypes.DEFAULT_TYPE):
